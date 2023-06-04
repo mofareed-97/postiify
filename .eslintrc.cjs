@@ -27,6 +27,7 @@ const config = {
             allowObject: true,
           },
         ],
+        "@typescript-eslint/no-empty-interface": "off",
         "@typescript-eslint/consistent-type-imports": "off",
         "@typescript-eslint/no-unsafe-member-access": "off",
         "@typescript-eslint/no-unsafe-argument": "off",

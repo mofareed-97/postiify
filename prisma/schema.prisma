@@ -51,6 +51,11 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+
+  birthDate DateTime?
+  bio       String?
+  country   String?
+  website   String?
 }
 
 model VerificationToken {
