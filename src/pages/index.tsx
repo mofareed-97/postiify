@@ -1,11 +1,10 @@
-import { type NextPage } from "next";
-import { useSession } from "next-auth/react";
+import { GetServerSideProps, type NextPage } from "next";
+import { getSession, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
 import CreatePost from "~/components/CreatePost";
 import AvatarUser from "~/components/Header/Avatar";
 import AppPost from "~/components/Post";
-import { Avatar, AvatarFallback, AvatarImage } from "~/components/ui/avatar";
 
 import { api } from "~/utils/api";
 
@@ -56,4 +55,14 @@ const AboutCard = () => {
       </div>
     </div>
   );
+};
+
+export const getServerSideProps: GetServerSideProps = async (context) => {
+  const session = await getSession(context);
+
+  return {
+    props: {
+      session,
+    },
+  };
 };
