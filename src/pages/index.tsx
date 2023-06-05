@@ -6,7 +6,6 @@ import CreatePost from "~/components/CreatePost";
 import AvatarUser from "~/components/Header/Avatar";
 import AppPost from "~/components/Post";
 
-import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   const { data: sessionData } = useSession();
@@ -40,7 +39,6 @@ const AboutCard = () => {
         <Image src={"/imgs/v-card.jpg"} alt="bg-card" fill />
       </div>
       <div className="relative flex w-full flex-col items-center gap-4 p-4">
-        {/* <Image src={sessionData?.user.image || ""} alt="avatar" fill /> */}
         {sessionData?.user ? (
           <div className="absolute -top-8 rounded-full border-4 ">
             <AvatarUser className="h-14 w-14" />
