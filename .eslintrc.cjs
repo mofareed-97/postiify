@@ -38,6 +38,7 @@ const config = {
         "@typescript-eslint/restrict-plus-operands": "off",
         "@typescript-eslint/ban-ts-comment": "off",
         "@typescript-eslint/no-explicit-any": "off",
+        "@typescript-eslint/no-misused-promises":"off"
       },
     },
   ],

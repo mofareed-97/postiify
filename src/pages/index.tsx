@@ -5,10 +5,11 @@ import Link from "next/link";
 import CreatePost from "~/components/CreatePost";
 import AvatarUser from "~/components/Header/Avatar";
 import AppPost from "~/components/Post";
-
+import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   const { data: sessionData } = useSession();
+  const { data, isLoading } = api.posts.getAll.useQuery();
 
   return (
     <>
@@ -17,7 +18,11 @@ const Home: NextPage = () => {
           {sessionData?.user !== undefined ? <AboutCard /> : null}
           <div className="mx-auto flex max-w-xl flex-1 flex-col gap-6">
             {sessionData?.user !== undefined ? <CreatePost /> : null}
-            <AppPost />
+            {data && data.length > 0
+              ? data.map((el) => {
+                  return <AppPost key={el.id} post={el} />;
+                })
+              : null}
           </div>
           {sessionData?.user !== undefined ? (
             <div className="hidden w-80 lg:block">box 3</div>
@@ -41,7 +46,11 @@ const AboutCard = () => {
       <div className="relative flex w-full flex-col items-center gap-4 p-4">
         {sessionData?.user ? (
           <div className="absolute -top-8 rounded-full border-4 ">
-            <AvatarUser className="h-14 w-14" />
+            <AvatarUser
+              className="h-14 w-14"
+              name={sessionData.user.name}
+              src={sessionData.user.image}
+            />
           </div>
         ) : null}
 

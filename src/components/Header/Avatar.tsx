@@ -4,15 +4,17 @@ import React from "react";
 
 interface IProps {
   className: string;
+  src?: string | null;
+  name?: string | null;
 }
 function AvatarUser(props: IProps) {
   const { data: sessionData } = useSession();
   if (!sessionData?.user) return null;
   return (
     <Avatar className={`outline-none ${props.className}`}>
-      <AvatarImage src={sessionData.user.image || ""} />
+      <AvatarImage src={props.src || ""} />
       <AvatarFallback className="">
-        {sessionData.user.name ? sessionData.user.name[0] : null}
+        {props.name ? props.name[0] : null}
       </AvatarFallback>
     </Avatar>
   );

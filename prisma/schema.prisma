@@ -58,6 +58,8 @@ model User {
   accounts      Account[]
   sessions      Session[]
 
+  createdAt DateTime @default(now())
+
   birthDate DateTime?
   bio       String?
   country   String?

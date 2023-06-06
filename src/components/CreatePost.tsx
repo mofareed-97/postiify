@@ -9,14 +9,32 @@ import Image from "next/image";
 import toast, { Toaster } from "react-hot-toast";
 import axios from "axios";
 import { api } from "~/utils/api";
+import { useSession } from "next-auth/react";
 
 function CreatePost() {
+  const { data: sessionData } = useSession();
+
   const [content, setContent] = useState("");
   const [selectedFile, setSelectedFile] = useState<string | null>(null);
   const [uploadedImage, setUploadedImage] = useState<string | null>(null);
   const [showEmojis, setShowEmojis] = useState(false);
 
-  const postApi = api.posts.createPost.useMutation();
+  const [loading, setLoading] = useState(false);
+  const ctx = api.useContext();
+  const { mutate, isLoading } = api.posts.createPost.useMutation({
+    onError: () => {
+      setLoading(false);
+      toast.error("Failed To send the post!");
+    },
+    onSuccess: () => {
+      setLoading(false);
+      setContent("");
+      setSelectedFile(null);
+      setUploadedImage(null);
+      toast.success("Post Sent Successfully!");
+      void ctx.posts.getAll.invalidate();
+    },
+  });
 
   const filePickerRef = useRef(null);
 
@@ -44,11 +62,29 @@ function CreatePost() {
 
   async function submitHandle(event: FormEvent) {
     event.preventDefault();
-    const formData = new FormData();
+    if (!content && !uploadedImage) {
+      toast.error("There is no content to send!");
+      return;
+    }
+
+    setLoading(true);
 
     if (!uploadedImage) {
+      mutate(
+        {
+          content,
+        },
+        {
+          onSuccess: (data) => {
+            console.log(data);
+          },
+        }
+      );
+
+      return;
     }
-    // @ts-ignore
+
+    const formData = new FormData();
     formData.append("file", uploadedImage);
     formData.append("upload_preset", "postify");
 
@@ -57,26 +93,29 @@ function CreatePost() {
         "https://api.cloudinary.com/v1_1/mofareed/image/upload",
         formData
       );
-      // console.log(data.secure_url);
-
-      postApi.mutate({
+      mutate({
         content,
         image: data.secure_url,
       });
-
-      setContent("");
-      setSelectedFile(null);
-    } catch (error) {
-      console.log(error);
+    } catch (error: any) {
+      throw new Error(error.response.data);
     }
   }
 
   return (
-    <div className="rounded-md border bg-popover p-4 shadow-sm outline-none">
+    <div
+      className={`rounded-md border bg-popover p-4 shadow-sm outline-none ${
+        isLoading ? "opacity-70" : "opacity-100"
+      }`}
+    >
       <h3 className="text-md mb-8 font-medium">Create Post</h3>
       <form onSubmit={submitHandle}>
         <div className="flex gap-4">
-          <AvatarUser className="h-8 w-8" />
+          <AvatarUser
+            className="h-8 w-8"
+            name={sessionData?.user.name}
+            src={sessionData?.user.image}
+          />
           <Textarea
             placeholder="Write anything..."
             className="resize-none"
@@ -99,25 +138,6 @@ function CreatePost() {
             />
           </div>
         )}
-
-        {/* {selectedFile ? (
-          <div className="min-h-24 relative py-4 pl-12">
-            <div
-              className="absolute  z-10 flex h-6 w-6 cursor-pointer items-center justify-center rounded-full bg-[#15181c] bg-opacity-75 hover:bg-[#272c26]"
-              onClick={() => setSelectedFile(null)}
-            >
-              <X className="h-5  text-white" />
-            </div>
-            <Image
-              fill
-              // width={150}
-              // height={150}
-              src={selectedFile}
-              alt=""
-              className="rounded-sm object-contain"
-            />
-          </div>
-        ) : null} */}
 
         <div className="mt-4 flex items-start justify-between">
           <div className="flex items-center gap-4">
@@ -161,12 +181,8 @@ function CreatePost() {
               </div>
             </div>
           </div>
-          <Button disabled={postApi.isLoading} type="submit">
-            {postApi.isLoading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              "Submit"
-            )}
+          <Button disabled={loading} type="submit">
+            {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Submit"}
           </Button>
         </div>
       </form>
