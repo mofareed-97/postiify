@@ -8,8 +8,6 @@ interface IProps {
   name?: string | null;
 }
 function AvatarUser(props: IProps) {
-  const { data: sessionData } = useSession();
-  if (!sessionData?.user) return null;
   return (
     <Avatar className={`outline-none ${props.className}`}>
       <AvatarImage src={props.src || ""} />

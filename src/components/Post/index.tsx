@@ -6,8 +6,14 @@ import {
   HoverCardTrigger,
 } from "~/components/ui/hover-card";
 import AvatarUser from "../Header/Avatar";
-import { CalendarDays, Loader2, MoreHorizontal } from "lucide-react";
-type PostType = RouterOutputs["posts"]["getAll"][0];
+import {
+  Bookmark,
+  CalendarDays,
+  Heart,
+  Loader2,
+  MessageCircle,
+  MoreHorizontal,
+} from "lucide-react";
 import dayjs from "dayjs";
 import Image from "next/image";
 import {
@@ -29,11 +35,18 @@ import {
 } from "~/components/ui/alert-dialog";
 
 import { toast, Toaster } from "react-hot-toast";
+import { useSession } from "next-auth/react";
+import { Button } from "../ui/button";
+import { Separator } from "../ui/separator";
+import Comments from "./Comments";
+
+type PostType = RouterOutputs["posts"]["getAll"][0];
 
 const AppPost = ({ post }: { post: PostType }) => {
   const [open, setOpen] = useState(false);
   const ctx = api.useContext();
-
+  const { data: sessionData } = useSession();
+  console.log(post);
   let toastPostID: string;
 
   const { mutate, isLoading } = api.posts.deletePost.useMutation({
@@ -48,6 +61,7 @@ const AppPost = ({ post }: { post: PostType }) => {
       setOpen(false);
     },
   });
+
   return (
     <div
       className={`overflow-hidden rounded-md border bg-popover shadow-sm outline-none ${
@@ -103,9 +117,11 @@ const AppPost = ({ post }: { post: PostType }) => {
           <DropdownMenuContent>
             <DropdownMenuItem>View Profile</DropdownMenuItem>
             <DropdownMenuItem>Copy Url</DropdownMenuItem>
-            <DropdownMenuItem onClick={() => setOpen(true)}>
-              Delete
-            </DropdownMenuItem>
+            {sessionData?.user.id === post.userId ? (
+              <DropdownMenuItem onClick={() => setOpen(true)}>
+                Delete
+              </DropdownMenuItem>
+            ) : null}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
@@ -151,7 +167,7 @@ const AppPost = ({ post }: { post: PostType }) => {
       </div>
 
       {post.image ? (
-        <div className="relative h-80 max-h-80  w-full">
+        <div className="relative h-80 max-h-80  w-full bg-gray-800">
           <Image
             src={post.image}
             alt="image post"
@@ -159,7 +175,27 @@ const AppPost = ({ post }: { post: PostType }) => {
             className="object-contain"
           />
         </div>
-      ) : null}
+      ) : // <Separator />
+      null}
+
+      <div className="flex items-center justify-around p-4">
+        <Button variant="ghost">
+          <MessageCircle className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost">
+          <Heart className="h-4 w-4" />
+        </Button>
+        <Button variant="ghost">
+          <Bookmark className="h-4 w-4" />
+        </Button>
+      </div>
+      <Separator />
+
+      {/* {post.comments && post.comments.length > 0
+        ? post.comments.map((el) => <Comments comment={el} key={el.id} />)
+        : null} */}
+      <Comments comment={post.comments} postId={post.id} />
+
       <Toaster />
     </div>
   );

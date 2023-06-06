@@ -14,10 +14,44 @@ model Post {
   updatedAt DateTime @updatedAt
   content   String
   image     String?
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  userId    String
+  imageId   String?
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  comments Comment[]
+  likes    Like[]
 
   @@index([userId])
+}
+
+model Like {
+  userId String
+  postId String
+
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, postId])
+  @@index([userId])
+  @@index([postId])
+}
+
+model Comment {
+  id        String   @id @default(cuid())
+  content   String
+  image     String?
+  imageId   String?
+  createdAt DateTime @default(now())
+
+  post   Post   @relation(fields: [postId], references: [id], onDelete: Cascade)
+  postId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId String
+
+  @@index([userId])
+  @@index([postId])
 }
 
 model Account {
@@ -65,6 +99,11 @@ model User {
   country   String?
   website   String?
   Post      Post[]
+  Comment   Comment[]
+  Like      Like[]
+
+  followers User[] @relation(name: "Followers")
+  follows   User[] @relation(name: "Followers")
 }
 
 model VerificationToken {

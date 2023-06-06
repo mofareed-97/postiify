@@ -5,11 +5,12 @@ import Link from "next/link";
 import CreatePost from "~/components/CreatePost";
 import AvatarUser from "~/components/Header/Avatar";
 import AppPost from "~/components/Post";
+import PostLoading from "~/components/Post/PostLoading";
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   const { data: sessionData } = useSession();
-  const { data, isLoading } = api.posts.getAll.useQuery();
+  const { data, isLoading, isFetching } = api.posts.getAll.useQuery();
 
   return (
     <>
@@ -23,6 +24,7 @@ const Home: NextPage = () => {
                   return <AppPost key={el.id} post={el} />;
                 })
               : null}
+            {isLoading && isFetching ? <PostLoading /> : null}
           </div>
           {sessionData?.user !== undefined ? (
             <div className="hidden w-80 lg:block">box 3</div>

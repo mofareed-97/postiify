@@ -16,6 +16,20 @@ export const postsRouter = createTRPCRouter({
       },
       include: {
         user: true,
+        comments: {
+          include: {
+            user: {
+              select: {
+                bio: true,
+                name: true,
+                id: true,
+                image: true,
+                createdAt: true,
+              },
+            },
+          },
+        },
+        likes: true,
       },
     });
   }),
@@ -50,5 +64,27 @@ export const postsRouter = createTRPCRouter({
           id: input.id,
         },
       });
+    }),
+
+  newComment: protectedProcedure
+    .input(
+      z.object({
+        content: z.string(),
+        image: z.string().optional(),
+        postId: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const newComm = await ctx.prisma.comment.create({
+        data: {
+          content: input.content,
+          image: input.image ? input.image : "",
+          userId: ctx.session.user.id,
+          postId: input.postId,
+        },
+      });
+
+      console.log(newComm);
+      return newComm;
     }),
 });
