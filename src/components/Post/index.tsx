@@ -1,4 +1,4 @@
-import React, { useId, useState } from "react";
+import React, { useEffect, useId, useState } from "react";
 import { api, type RouterOutputs } from "~/utils/api";
 import {
   HoverCard,
@@ -45,15 +45,10 @@ type PostType = RouterOutputs["posts"]["getAll"][0];
 const AppPost = ({ post }: { post: PostType }) => {
   const [open, setOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
+  const [isLiked, setIsLiked] = useState(false);
   const ctx = api.useContext();
   const { data: sessionData } = useSession();
   let toastPostID: string;
-  let isLiked;
-
-  // if (sessionData?.user !== undefined) {
-  //   const findId = post.likes.find((i) => i.userId === sessionData.user.id);
-  //   console.log(findId.);
-  // }
 
   const { mutate, isLoading } = api.posts.deletePost.useMutation({
     onSuccess: () => {
@@ -68,16 +63,29 @@ const AppPost = ({ post }: { post: PostType }) => {
     },
   });
 
-  const { mutate: likeMutatte } = api.posts.toggleLike.useMutation({
-    onSuccess: async ({ addLike }) => {
-      // void ctx.posts.getAll.invalidate();
-
-      toast.success("Post liked Successfully!");
+  const { mutate: likeToggle } = api.posts.toggleLike.useMutation({
+    onSuccess: (data) => {
+      if (data.addLike) {
+        setIsLiked(true);
+      } else {
+        setIsLiked(false);
+      }
+      void ctx.posts.getAll.invalidate();
     },
     onError: () => {
-      toast.error("Something Went Wrong");
+      toast.error("Ops, Failed to like the post");
     },
   });
+
+  useEffect(() => {
+    if (sessionData?.user) {
+      post.likes.map((el) => {
+        if (el.userId === sessionData.user.id) {
+          setIsLiked(true);
+        }
+      });
+    }
+  }, []);
 
   return (
     <div
@@ -202,16 +210,23 @@ const AppPost = ({ post }: { post: PostType }) => {
         </Button>
         <Button
           onClick={() => {
-            likeMutatte({
+            setIsLiked(!isLiked);
+            likeToggle({
               id: post.id,
             });
           }}
           variant="ghost"
         >
           {/* {sessionData?.user !== undefined && */}
-          <Heart className="h-4 w-4 fill-red-500 stroke-red-500" />
+          {isLiked ? (
+            <Heart className="h-4 w-4 fill-red-500 stroke-red-500" />
+          ) : (
+            <Heart className="h-4 w-4" />
+          )}
+
+          <span className="ml-1 text-xs">{post.likes.length}</span>
+
           {/* ) : null} */}
-          <Heart className="h-4 w-4" />
         </Button>
         <Button variant="ghost">
           <Bookmark className="h-4 w-4" />
