@@ -1,4 +1,4 @@
-import React, { useEffect, useId, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { api, type RouterOutputs } from "~/utils/api";
 import {
   HoverCard,
@@ -31,7 +31,6 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogTrigger,
 } from "~/components/ui/alert-dialog";
 
 import { toast, Toaster } from "react-hot-toast";
@@ -62,6 +61,30 @@ const AppPost = ({ post }: { post: PostType }) => {
       setOpen(false);
     },
   });
+
+  const { mutate: likeToggle } = api.posts.toggleLike.useMutation({
+    onSuccess: (data) => {
+      if (data.addLike) {
+        setIsLiked(true);
+      } else {
+        setIsLiked(false);
+      }
+      void ctx.posts.getAll.invalidate();
+    },
+    onError: () => {
+      toast.error("Ops, Failed to like the post");
+    },
+  });
+
+  useEffect(() => {
+    if (sessionData?.user) {
+      post.likes.map((el) => {
+        if (el.userId === sessionData.user.id) {
+          setIsLiked(true);
+        }
+      });
+    }
+  }, []);
 
   return (
     <div
@@ -184,9 +207,21 @@ const AppPost = ({ post }: { post: PostType }) => {
           <MessageCircle className="h-4 w-4" />
           <span className="ml-1 text-xs">{post.comments.length}</span>
         </Button>
-        <Button variant="ghost">
+        <Button
+          onClick={() => {
+            setIsLiked(!isLiked);
+            likeToggle({
+              id: post.id,
+            });
+          }}
+          variant="ghost"
+        >
           {/* {sessionData?.user !== undefined && */}
-          <Heart className="h-4 w-4" />
+          {isLiked ? (
+            <Heart className="h-4 w-4 fill-red-500 stroke-red-500" />
+          ) : (
+            <Heart className="h-4 w-4" />
+          )}
 
           <span className="ml-1 text-xs">{post.likes.length}</span>
 
