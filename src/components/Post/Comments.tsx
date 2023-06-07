@@ -9,7 +9,8 @@ import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-type CommentType = RouterOutputs["posts"]["getAll"][0]["comments"][0];
+
+type CommentType = RouterOutputs["posts"]["getAll"]["posts"][0]["comments"][0];
 
 dayjs.extend(relativeTime);
 
