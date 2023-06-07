@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useId, useState } from "react";
 import { api, type RouterOutputs } from "~/utils/api";
 import {
   HoverCard,
@@ -44,10 +44,16 @@ type PostType = RouterOutputs["posts"]["getAll"][0];
 
 const AppPost = ({ post }: { post: PostType }) => {
   const [open, setOpen] = useState(false);
+  const [showComments, setShowComments] = useState(false);
   const ctx = api.useContext();
   const { data: sessionData } = useSession();
-  console.log(post);
   let toastPostID: string;
+  let isLiked;
+
+  // if (sessionData?.user !== undefined) {
+  //   const findId = post.likes.find((i) => i.userId === sessionData.user.id);
+  //   console.log(findId.);
+  // }
 
   const { mutate, isLoading } = api.posts.deletePost.useMutation({
     onSuccess: () => {
@@ -59,6 +65,17 @@ const AppPost = ({ post }: { post: PostType }) => {
     onError: () => {
       toast.error("Something Went Wrong");
       setOpen(false);
+    },
+  });
+
+  const { mutate: likeMutatte } = api.posts.toggleLike.useMutation({
+    onSuccess: async ({ addLike }) => {
+      // void ctx.posts.getAll.invalidate();
+
+      toast.success("Post liked Successfully!");
+    },
+    onError: () => {
+      toast.error("Something Went Wrong");
     },
   });
 
@@ -177,12 +194,23 @@ const AppPost = ({ post }: { post: PostType }) => {
         </div>
       ) : // <Separator />
       null}
-
+      <Separator />
       <div className="flex items-center justify-around p-4">
-        <Button variant="ghost">
+        <Button variant="ghost" onClick={() => setShowComments(!showComments)}>
           <MessageCircle className="h-4 w-4" />
+          <span className="ml-1 text-xs">{post.comments.length}</span>
         </Button>
-        <Button variant="ghost">
+        <Button
+          onClick={() => {
+            likeMutatte({
+              id: post.id,
+            });
+          }}
+          variant="ghost"
+        >
+          {/* {sessionData?.user !== undefined && */}
+          <Heart className="h-4 w-4 fill-red-500 stroke-red-500" />
+          {/* ) : null} */}
           <Heart className="h-4 w-4" />
         </Button>
         <Button variant="ghost">
@@ -191,10 +219,9 @@ const AppPost = ({ post }: { post: PostType }) => {
       </div>
       <Separator />
 
-      {/* {post.comments && post.comments.length > 0
-        ? post.comments.map((el) => <Comments comment={el} key={el.id} />)
-        : null} */}
-      <Comments comment={post.comments} postId={post.id} />
+      {showComments ? (
+        <Comments comment={post.comments} postId={post.id} />
+      ) : null}
 
       <Toaster />
     </div>

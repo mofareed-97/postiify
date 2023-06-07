@@ -7,8 +7,11 @@ import AvatarUser from "../Header/Avatar";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Separator } from "../ui/separator";
-
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
 type CommentType = RouterOutputs["posts"]["getAll"][0]["comments"][0];
+
+dayjs.extend(relativeTime);
 
 function Comments({
   comment,
@@ -17,21 +20,32 @@ function Comments({
   comment: CommentType[];
   postId: string;
 }) {
-  const { data: sessionData } = useSession();
   return (
     <>
       <CreateComment id={postId} />
       <Separator />
-      <h3 className="mb-8 p-4 pt-8 text-sm font-medium">Comments</h3>
+      {comment.length > 0 ? (
+        <h3 className="mb-1 p-4 pt-8 text-sm font-medium">Comments</h3>
+      ) : null}
       {comment.length > 0
         ? comment.map((el) => (
-            <div key={el.id} className="p-4">
+            <div key={el.id} className="px-4 py-2">
               <div className="flex gap-4">
                 <AvatarUser
                   className="h-7  w-7"
                   src={el.user.image}
                   name={el.user.name}
                 />
+                <div className="">
+                  <div className="min-w-[80px] overflow-hidden rounded-lg rounded-bl-none border bg-popover px-4 py-2 shadow-sm">
+                    <p className="text-xs ">{el.content}</p>
+                  </div>
+                  <div className="mt-1 flex justify-end">
+                    <span className="text-[8px]">
+                      {dayjs(el.createdAt).fromNow()}
+                    </span>
+                  </div>
+                </div>
               </div>
             </div>
           ))

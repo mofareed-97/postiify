@@ -17,6 +17,9 @@ export const postsRouter = createTRPCRouter({
       include: {
         user: true,
         comments: {
+          orderBy: {
+            createdAt: "desc",
+          },
           include: {
             user: {
               select: {
@@ -33,6 +36,16 @@ export const postsRouter = createTRPCRouter({
       },
     });
   }),
+
+  getSinglePost: publicProcedure
+    .input(z.object({ postId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      return await ctx.prisma.post.findUnique({
+        where: {
+          id: input.postId,
+        },
+      });
+    }),
 
   createPost: protectedProcedure
     .input(z.object({ content: z.string(), image: z.string().optional() }))
@@ -86,5 +99,25 @@ export const postsRouter = createTRPCRouter({
 
       console.log(newComm);
       return newComm;
+    }),
+
+  toggleLike: protectedProcedure
+    .input(z.object({ id: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const data = { postId: input.id, userId: ctx.session.user.id };
+
+      const existingLike = await ctx.prisma.like.findUnique({
+        where: {
+          userId_postId: data,
+        },
+      });
+
+      if (existingLike == null) {
+        await ctx.prisma.like.create({ data });
+        return { addLike: true };
+      }
+
+      await ctx.prisma.like.delete({ where: { userId_postId: data } });
+      return { addLike: false };
     }),
 });
