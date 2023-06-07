@@ -8,6 +8,7 @@ import { ThemeProvider } from "~/components/Header/theme-provider";
 import { cn } from "~/utils/cn";
 import { fontSans } from "~/utils/fonts";
 import Head from "next/head";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -42,6 +43,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
             </div>
           </ThemeProvider>
         </div>
+        <ReactQueryDevtools initialIsOpen={false} />
       </SessionProvider>
     </>
   );

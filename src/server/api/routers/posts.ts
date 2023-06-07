@@ -6,36 +6,58 @@ import {
 } from "~/server/api/trpc";
 
 export const postsRouter = createTRPCRouter({
-  getAll: publicProcedure.query(async ({ ctx }) => {
-    // await ctx.prisma.user.deleteMany();
-    // await ctx.prisma.post.deleteMany();
-    return ctx.prisma.post.findMany({
-      orderBy: {
-        // createdAt: { sort: 'asc', nulls: 'last' },
-        createdAt: "desc",
-      },
-      include: {
-        user: true,
-        comments: {
-          orderBy: {
-            createdAt: "desc",
-          },
-          include: {
-            user: {
-              select: {
-                bio: true,
-                name: true,
-                id: true,
-                image: true,
-                createdAt: true,
+  getAll: publicProcedure
+    .input(
+      z.object({
+        cursor: z.string().nullish(),
+        limit: z.number().min(1).max(100).default(10),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { limit, cursor } = input;
+      console.log(limit);
+      // await ctx.prisma.user.deleteMany();
+      // await ctx.prisma.post.deleteMany();
+      const posts = await ctx.prisma.post.findMany({
+        orderBy: {
+          createdAt: "desc",
+        },
+        cursor: cursor ? { id: cursor } : undefined,
+        take: limit + 1,
+        include: {
+          user: true,
+          comments: {
+            orderBy: {
+              createdAt: "desc",
+            },
+            include: {
+              user: {
+                select: {
+                  bio: true,
+                  name: true,
+                  id: true,
+                  image: true,
+                  createdAt: true,
+                },
               },
             },
           },
+          likes: true,
         },
-        likes: true,
-      },
-    });
-  }),
+      });
+
+      let nextCursor: typeof cursor | undefined = undefined;
+
+      if (posts.length > limit) {
+        const nextItem = posts.pop() as (typeof posts)[number];
+
+        nextCursor = nextItem.id;
+      }
+      return {
+        posts,
+        nextCursor,
+      };
+    }),
 
   getSinglePost: publicProcedure
     .input(z.object({ postId: z.string() }))
@@ -120,4 +142,23 @@ export const postsRouter = createTRPCRouter({
       await ctx.prisma.like.delete({ where: { userId_postId: data } });
       return { addLike: false };
     }),
+
+  // like: protectedProcedure
+  //   .input(z.object({ postId: z.string() }))
+  //   .mutation(async ({ ctx, input }) => {
+  //     const userId = ctx.session.user.id;
+  //     return await ctx.prisma.like.create({
+  //       data: {
+  //         post: {
+  //           connect: {
+  //             id: userId,
+  //           },
+  //         },
+  //       },
+  //     });
+  //   }),
+
+  // unlike: protectedProcedure
+  //   .input(z.object({ postId: z.string() }))
+  //   .mutation(async ({ ctx, input }) => {}),
 });

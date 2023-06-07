@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { api, type RouterOutputs } from "~/utils/api";
 import {
   HoverCard,
@@ -38,8 +38,9 @@ import { useSession } from "next-auth/react";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import Comments from "./Comments";
+import { QueryClient } from "@tanstack/react-query";
 
-type PostType = RouterOutputs["posts"]["getAll"][0];
+type PostType = RouterOutputs["posts"]["getAll"]["posts"][number];
 
 const AppPost = ({ post }: { post: PostType }) => {
   const [open, setOpen] = useState(false);
@@ -75,16 +76,6 @@ const AppPost = ({ post }: { post: PostType }) => {
       toast.error("Ops, Failed to like the post");
     },
   });
-
-  useEffect(() => {
-    if (sessionData?.user) {
-      post.likes.map((el) => {
-        if (el.userId === sessionData.user.id) {
-          setIsLiked(true);
-        }
-      });
-    }
-  }, []);
 
   return (
     <div
@@ -243,3 +234,21 @@ const AppPost = ({ post }: { post: PostType }) => {
 };
 
 export default AppPost;
+
+// function updateCache({
+//   client,
+//   variables,
+//   data,
+//   action,
+// }: {
+//   client: QueryClient;
+//   variables: { postId: string };
+//   data: {
+//     userId: string;
+//   };
+//   action: "like" | "unlike";
+// }) {
+//   client.setQueriesData([["posts", "getAll"],{
+
+//   }]);
+// }

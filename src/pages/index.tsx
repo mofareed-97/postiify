@@ -2,29 +2,47 @@ import { GetServerSideProps, type NextPage } from "next";
 import { getSession, useSession } from "next-auth/react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect } from "react";
 import CreatePost from "~/components/CreatePost";
 import AvatarUser from "~/components/Header/Avatar";
+import LoadingSpinner from "~/components/LoadingSpinner";
 import AppPost from "~/components/Post";
 import PostLoading from "~/components/Post/PostLoading";
+import useScrollPostition from "~/components/useScrollPostition";
 import { api } from "~/utils/api";
 
 const Home: NextPage = () => {
   const { data: sessionData } = useSession();
-  const { data, isLoading, isFetching } = api.posts.getAll.useQuery();
+  const scrollPosition = useScrollPostition();
+  const { data, hasNextPage, fetchNextPage, isLoading, isFetching } =
+    api.posts.getAll.useInfiniteQuery(
+      {
+        limit: 10,
+      },
+      { getNextPageParam: (lastPage) => lastPage.nextCursor }
+    );
+  console.log(data?.pages[0]);
 
+  const posts = data?.pages.flatMap((page) => page.posts) ?? [];
+
+  useEffect(() => {
+    if (scrollPosition > 90 && hasNextPage && !isFetching) {
+      void fetchNextPage();
+    }
+  }, [scrollPosition, fetchNextPage, hasNextPage, isFetching]);
   return (
     <>
       <main className="py-6">
         <div className="container flex min-h-screen w-full gap-10">
           {sessionData?.user !== undefined ? <AboutCard /> : null}
-          <div className="mx-auto flex max-w-xl flex-1 flex-col gap-6">
+          <div className="mx-auto mb-10 flex max-w-xl flex-1 flex-col gap-6">
             {sessionData?.user !== undefined ? <CreatePost /> : null}
-            {data && data.length > 0
-              ? data.map((el) => {
-                  return <AppPost key={el.id} post={el} />;
-                })
-              : null}
-            {isLoading && isFetching ? <PostLoading /> : null}
+            {posts.map((el) => {
+              return <AppPost key={el.id} post={el} />;
+            })}
+            {isLoading ? <PostLoading /> : null}
+
+            {isFetching ? <LoadingSpinner /> : null}
           </div>
           {sessionData?.user !== undefined ? (
             <div className="hidden w-80 lg:block">box 3</div>
