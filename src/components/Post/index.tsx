@@ -63,30 +63,6 @@ const AppPost = ({ post }: { post: PostType }) => {
     },
   });
 
-  const { mutate: likeToggle } = api.posts.toggleLike.useMutation({
-    onSuccess: (data) => {
-      if (data.addLike) {
-        setIsLiked(true);
-      } else {
-        setIsLiked(false);
-      }
-      void ctx.posts.getAll.invalidate();
-    },
-    onError: () => {
-      toast.error("Ops, Failed to like the post");
-    },
-  });
-
-  useEffect(() => {
-    if (sessionData?.user) {
-      post.likes.map((el) => {
-        if (el.userId === sessionData.user.id) {
-          setIsLiked(true);
-        }
-      });
-    }
-  }, []);
-
   return (
     <div
       className={`overflow-hidden rounded-md border bg-popover shadow-sm outline-none ${
@@ -208,21 +184,9 @@ const AppPost = ({ post }: { post: PostType }) => {
           <MessageCircle className="h-4 w-4" />
           <span className="ml-1 text-xs">{post.comments.length}</span>
         </Button>
-        <Button
-          onClick={() => {
-            setIsLiked(!isLiked);
-            likeToggle({
-              id: post.id,
-            });
-          }}
-          variant="ghost"
-        >
+        <Button variant="ghost">
           {/* {sessionData?.user !== undefined && */}
-          {isLiked ? (
-            <Heart className="h-4 w-4 fill-red-500 stroke-red-500" />
-          ) : (
-            <Heart className="h-4 w-4" />
-          )}
+          <Heart className="h-4 w-4" />
 
           <span className="ml-1 text-xs">{post.likes.length}</span>
 

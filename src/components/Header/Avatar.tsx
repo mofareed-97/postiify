@@ -1,4 +1,3 @@
-import { useSession } from "next-auth/react";
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import React from "react";
 
