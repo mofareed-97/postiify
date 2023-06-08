@@ -14,8 +14,8 @@ export const postsRouter = createTRPCRouter({
       })
     )
     .query(async ({ ctx, input }) => {
+      const userId = ctx.session?.user.id;
       const { limit, cursor } = input;
-      console.log(limit);
       // await ctx.prisma.user.deleteMany();
       // await ctx.prisma.post.deleteMany();
       const posts = await ctx.prisma.post.findMany({
@@ -42,7 +42,19 @@ export const postsRouter = createTRPCRouter({
               },
             },
           },
-          likes: true,
+          likes: {
+            where: {
+              userId,
+            },
+            select: {
+              userId: true,
+            },
+          },
+          _count: {
+            select: {
+              likes: true,
+            },
+          },
         },
       });
 
@@ -119,46 +131,62 @@ export const postsRouter = createTRPCRouter({
         },
       });
 
-      console.log(newComm);
       return newComm;
     }),
 
-  toggleLike: protectedProcedure
-    .input(z.object({ id: z.string() }))
-    .mutation(async ({ ctx, input }) => {
-      const data = { postId: input.id, userId: ctx.session.user.id };
-
-      const existingLike = await ctx.prisma.like.findUnique({
-        where: {
-          userId_postId: data,
-        },
-      });
-
-      if (existingLike == null) {
-        await ctx.prisma.like.create({ data });
-        return { addLike: true };
-      }
-
-      await ctx.prisma.like.delete({ where: { userId_postId: data } });
-      return { addLike: false };
-    }),
-
-  // like: protectedProcedure
-  //   .input(z.object({ postId: z.string() }))
+  // toggleLike: protectedProcedure
+  //   .input(z.object({ id: z.string() }))
   //   .mutation(async ({ ctx, input }) => {
-  //     const userId = ctx.session.user.id;
-  //     return await ctx.prisma.like.create({
-  //       data: {
-  //         post: {
-  //           connect: {
-  //             id: userId,
-  //           },
-  //         },
+  //     const data = { postId: input.id, userId: ctx.session.user.id };
+
+  //     const existingLike = await ctx.prisma.like.findUnique({
+  //       where: {
+  //         userId_postId: data,
   //       },
   //     });
+
+  //     if (existingLike == null) {
+  //       await ctx.prisma.like.create({ data });
+  //       return { addLike: true };
+  //     }
+
+  //     await ctx.prisma.like.delete({ where: { userId_postId: data } });
+  //     return { addLike: false };
   //   }),
 
-  // unlike: protectedProcedure
-  //   .input(z.object({ postId: z.string() }))
-  //   .mutation(async ({ ctx, input }) => {}),
+  like: protectedProcedure
+    .input(z.object({ postId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      return ctx.prisma.like.create({
+        data: {
+          post: {
+            connect: {
+              id: input.postId,
+            },
+          },
+          user: {
+            connect: {
+              id: userId,
+            },
+          },
+        },
+      });
+    }),
+
+  unlike: protectedProcedure
+    .input(z.object({ postId: z.string() }))
+    .mutation(async ({ ctx, input }) => {
+      const userId = ctx.session.user.id;
+
+      return ctx.prisma.like.delete({
+        where: {
+          postId_userId: {
+            postId: input.postId,
+            userId,
+          },
+        },
+      });
+    }),
 });

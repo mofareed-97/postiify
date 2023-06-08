@@ -70,17 +70,9 @@ function CreatePost() {
     setLoading(true);
 
     if (!uploadedImage) {
-      mutate(
-        {
-          content,
-        },
-        {
-          onSuccess: (data) => {
-            console.log(data);
-          },
-        }
-      );
-
+      mutate({
+        content,
+      });
       return;
     }
 

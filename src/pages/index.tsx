@@ -1,3 +1,4 @@
+import { useQueryClient } from "@tanstack/react-query";
 import { GetServerSideProps, type NextPage } from "next";
 import { getSession, useSession } from "next-auth/react";
 import Image from "next/image";
@@ -21,7 +22,7 @@ const Home: NextPage = () => {
       },
       { getNextPageParam: (lastPage) => lastPage.nextCursor }
     );
-  console.log(data?.pages[0]);
+  const client = useQueryClient();
 
   const posts = data?.pages.flatMap((page) => page.posts) ?? [];
 
@@ -38,7 +39,16 @@ const Home: NextPage = () => {
           <div className="mx-auto mb-10 flex max-w-xl flex-1 flex-col gap-6">
             {sessionData?.user !== undefined ? <CreatePost /> : null}
             {posts.map((el) => {
-              return <AppPost key={el.id} post={el} />;
+              return (
+                <AppPost
+                  key={el.id}
+                  post={el}
+                  client={client}
+                  input={{
+                    limit: 10,
+                  }}
+                />
+              );
             })}
             {isLoading ? <PostLoading /> : null}
 
@@ -65,13 +75,16 @@ const AboutCard = () => {
       </div>
       <div className="relative flex w-full flex-col items-center gap-4 p-4">
         {sessionData?.user ? (
-          <div className="absolute -top-8 rounded-full border-4 ">
+          <Link
+            href={sessionData?.user.id}
+            className="absolute -top-8 rounded-full border-4 "
+          >
             <AvatarUser
               className="h-14 w-14"
               name={sessionData.user.name}
               src={sessionData.user.image}
             />
-          </div>
+          </Link>
         ) : null}
 
         <Link href={"/"} className="pt-5">

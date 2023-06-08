@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { api, type RouterOutputs } from "~/utils/api";
+import { api, RouterInputs, type RouterOutputs } from "~/utils/api";
 import {
   HoverCard,
   HoverCardContent,
@@ -38,11 +38,17 @@ import { useSession } from "next-auth/react";
 import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import Comments from "./Comments";
-import { QueryClient } from "@tanstack/react-query";
+import { InfiniteData, QueryClient } from "@tanstack/react-query";
 
 type PostType = RouterOutputs["posts"]["getAll"]["posts"][number];
 
-const AppPost = ({ post }: { post: PostType }) => {
+interface PostProps {
+  post: PostType;
+  client: QueryClient;
+  input: RouterInputs["posts"]["getAll"];
+}
+
+const AppPost = ({ post, client, input }: PostProps) => {
   const [open, setOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [isLiked, setIsLiked] = useState(false);
@@ -63,20 +69,18 @@ const AppPost = ({ post }: { post: PostType }) => {
     },
   });
 
-  const { mutate: likeToggle } = api.posts.toggleLike.useMutation({
-    onSuccess: (data) => {
-      if (data.addLike) {
-        setIsLiked(true);
-      } else {
-        setIsLiked(false);
-      }
-      void ctx.posts.getAll.invalidate();
+  const likeMutation = api.posts.like.useMutation({
+    onSuccess: (data, variables) => {
+      updateCache({ client, data, variables, input, action: "like" });
     },
-    onError: () => {
-      toast.error("Ops, Failed to like the post");
+  });
+  const unlikeMutation = api.posts.unlike.useMutation({
+    onSuccess: (data, variables) => {
+      updateCache({ client, data, variables, input, action: "unlike" });
     },
   });
 
+  const hasLiked = post.likes.length > 0;
   return (
     <div
       className={`overflow-hidden rounded-md border bg-popover shadow-sm outline-none ${
@@ -199,24 +203,22 @@ const AppPost = ({ post }: { post: PostType }) => {
           <span className="ml-1 text-xs">{post.comments.length}</span>
         </Button>
         <Button
+          disabled={likeMutation.isLoading || unlikeMutation.isLoading}
           onClick={() => {
-            setIsLiked(!isLiked);
-            likeToggle({
-              id: post.id,
-            });
+            if (hasLiked) {
+              void unlikeMutation.mutateAsync({ postId: post.id });
+              return;
+            }
+            void likeMutation.mutateAsync({ postId: post.id });
           }}
           variant="ghost"
         >
-          {/* {sessionData?.user !== undefined && */}
-          {isLiked ? (
-            <Heart className="h-4 w-4 fill-red-500 stroke-red-500" />
-          ) : (
-            <Heart className="h-4 w-4" />
-          )}
-
-          <span className="ml-1 text-xs">{post.likes.length}</span>
-
-          {/* ) : null} */}
+          <Heart
+            className={`h-4 w-4 ${
+              hasLiked ? "fill-red-500 stroke-red-500" : ""
+            }`}
+          />
+          <span className="ml-1 text-xs">{post._count.likes}</span>
         </Button>
         <Button variant="ghost">
           <Bookmark className="h-4 w-4" />
@@ -235,20 +237,58 @@ const AppPost = ({ post }: { post: PostType }) => {
 
 export default AppPost;
 
-// function updateCache({
-//   client,
-//   variables,
-//   data,
-//   action,
-// }: {
-//   client: QueryClient;
-//   variables: { postId: string };
-//   data: {
-//     userId: string;
-//   };
-//   action: "like" | "unlike";
-// }) {
-//   client.setQueriesData([["posts", "getAll"],{
+function updateCache({
+  client,
+  variables,
+  data,
+  action,
+  input,
+}: {
+  client: QueryClient;
+  input: RouterInputs["posts"]["getAll"];
+  variables: {
+    postId: string;
+  };
+  data: {
+    userId: string;
+  };
+  action: "like" | "unlike";
+}) {
+  client.setQueryData(
+    [
+      ["posts", "getAll"],
+      {
+        input,
+        type: "infinite",
+      },
+    ],
+    (oldData) => {
+      const newData = oldData as InfiniteData<RouterOutputs["posts"]["getAll"]>;
 
-//   }]);
-// }
+      const value = action === "like" ? 1 : -1;
+
+      const newPosts = newData?.pages.map((page) => {
+        return {
+          posts: page.posts.map((post) => {
+            if (post.id === variables.postId) {
+              return {
+                ...post,
+                likes: action === "like" ? [data.userId] : [],
+                _count: {
+                  likes: post._count.likes + value,
+                },
+              };
+            }
+
+            return post;
+          }),
+        };
+      });
+
+      return {
+        ...newData,
+        pages: newPosts,
+      };
+    }
+  );
+}

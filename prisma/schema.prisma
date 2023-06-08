@@ -32,9 +32,9 @@ model Like {
   post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
-  @@id([userId, postId])
+  // @@id([userId, postId])
+  @@unique([postId, userId])
   @@index([userId])
-  @@index([postId])
 }
 
 model Comment {
