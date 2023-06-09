@@ -39,6 +39,7 @@ import { Button } from "../ui/button";
 import { Separator } from "../ui/separator";
 import Comments from "./Comments";
 import { InfiniteData, QueryClient } from "@tanstack/react-query";
+import { useRouter } from "next/navigation";
 
 type PostType = RouterOutputs["posts"]["getAll"]["posts"][number];
 
@@ -51,9 +52,10 @@ interface PostProps {
 const AppPost = ({ post, client, input }: PostProps) => {
   const [open, setOpen] = useState(false);
   const [showComments, setShowComments] = useState(false);
-  const [isLiked, setIsLiked] = useState(false);
   const ctx = api.useContext();
   const { data: sessionData } = useSession();
+  const router = useRouter();
+
   let toastPostID: string;
 
   const { mutate, isLoading } = api.posts.deletePost.useMutation({
@@ -88,7 +90,7 @@ const AppPost = ({ post, client, input }: PostProps) => {
       }`}
     >
       <div className="flex justify-between p-4">
-        <div className="">
+        <div onClick={() => router.push(`${post.userId}`)} className="">
           <HoverCard>
             <HoverCardTrigger>
               <div className="flex cursor-pointer gap-4">

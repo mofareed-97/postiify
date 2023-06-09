@@ -77,3 +77,9 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
 }
+
+@layer components {
+  .card {
+    @apply rounded-md border bg-popover shadow-sm outline-none;
+  }
+}

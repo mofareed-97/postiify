@@ -9,6 +9,7 @@ import { cn } from "~/utils/cn";
 import { fontSans } from "~/utils/fonts";
 import Head from "next/head";
 import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import NextNProgress from "nextjs-progressbar";
 
 const MyApp: AppType<{ session: Session | null }> = ({
   Component,
@@ -24,6 +25,7 @@ const MyApp: AppType<{ session: Session | null }> = ({
         />
         <link rel="icon" href="/favicon.png" />
       </Head>
+      <NextNProgress />
       <SessionProvider session={session}>
         <style jsx global>{`
           :root {
