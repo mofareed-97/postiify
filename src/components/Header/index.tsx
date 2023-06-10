@@ -11,9 +11,12 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "../ui/avatar";
 import { signIn, signOut, useSession } from "next-auth/react";
 import { Button } from "../ui/button";
+import { useRouter } from "next/navigation";
+import { Login } from "../Auth/Login";
 
 export function SiteHeader() {
   const { data: sessionData } = useSession();
+  const router = useRouter();
 
   return (
     <header className="sticky top-0 z-40 w-full border-b bg-background">
@@ -34,9 +37,11 @@ export function SiteHeader() {
                 <DropdownMenuContent>
                   <DropdownMenuLabel>My Account</DropdownMenuLabel>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem>Profile</DropdownMenuItem>
-                  <DropdownMenuItem>Billing</DropdownMenuItem>
-                  <DropdownMenuItem>Team</DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push(`/${sessionData.user.id}`)}
+                  >
+                    Profile
+                  </DropdownMenuItem>
                   <DropdownMenuItem onClick={() => void signOut()}>
                     Logout
                   </DropdownMenuItem>
@@ -46,7 +51,8 @@ export function SiteHeader() {
 
             <ThemeToggle />
             {sessionData?.user === undefined ? (
-              <Button onClick={() => void signIn()}>Login</Button>
+              // <Button onClick={() => void signIn()}>Login</Button>
+              <Login />
             ) : null}
           </nav>
         </div>

@@ -85,7 +85,7 @@ const AppPost = ({ post, client, input }: PostProps) => {
   const hasLiked = post.likes.length > 0;
   return (
     <div
-      className={`overflow-hidden rounded-md border bg-popover shadow-sm outline-none ${
+      className={`card overflow-hidden ${
         isLoading ? "opacity-50" : "opacity-100"
       }`}
     >

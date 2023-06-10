@@ -95,11 +95,7 @@ function CreatePost() {
   }
 
   return (
-    <div
-      className={`rounded-md border bg-popover p-4 shadow-sm outline-none ${
-        isLoading ? "opacity-70" : "opacity-100"
-      }`}
-    >
+    <div className={`card p-4 ${isLoading ? "opacity-70" : "opacity-100"}`}>
       <h3 className="text-md mb-8 font-medium">Create Post</h3>
       <form onSubmit={submitHandle}>
         <div className="flex gap-4">

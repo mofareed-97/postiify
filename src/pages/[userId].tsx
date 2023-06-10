@@ -3,8 +3,11 @@ import { GetServerSideProps } from "next";
 import { getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { Login } from "~/components/Auth/Login";
 import LoadingSpinner from "~/components/LoadingSpinner";
+import About from "~/components/Profile/About";
 import Banner from "~/components/Profile/Banner";
+import ProfileFeed from "~/components/Profile/ProfileFeed";
 import { api, RouterOutputs } from "~/utils/api";
 
 // type PostType = RouterOutputs["posts"]["getAll"]["posts"][number];
@@ -26,6 +29,11 @@ function Profile({ userId }: { userId: string }) {
   return (
     <main className="container min-h-screen w-full py-4">
       <Banner profile={data} />
+
+      <div className="flex w-full items-start gap-10 py-6">
+        <About profile={data} />
+        <ProfileFeed userId={userId} />
+      </div>
     </main>
   );
 }

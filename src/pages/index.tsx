@@ -69,7 +69,7 @@ const AboutCard = () => {
   const { data: sessionData } = useSession();
   return (
     // <div className="hidden h-fit w-80 rounded-md border bg-popover  text-popover-foreground shadow-sm outline-none md:block">
-    <div className="hidden h-fit w-80 overflow-hidden rounded-md border  bg-popover shadow-sm outline-none md:block">
+    <div className="sticky top-20 hidden h-fit w-80 overflow-hidden rounded-md border  bg-popover shadow-sm outline-none md:block">
       <div className="relative h-32 w-full">
         <Image src={"/imgs/v-card.jpg"} alt="bg-card" fill />
       </div>
@@ -86,12 +86,11 @@ const AboutCard = () => {
             />
           </Link>
         ) : null}
-
-        <Link href={"/"} className="pt-5">
-          {sessionData?.user.name}
-        </Link>
-
-        <p className="text-xs text-popover-foreground">New York, USA</p>
+        {sessionData?.user ? (
+          <Link href={sessionData?.user.id} className="pt-5">
+            {sessionData?.user.name}
+          </Link>
+        ) : null}
       </div>
     </div>
   );

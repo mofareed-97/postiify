@@ -9,19 +9,29 @@ export const postsRouter = createTRPCRouter({
   getAll: publicProcedure
     .input(
       z.object({
+        where: z
+          .object({
+            user: z
+              .object({
+                id: z.string().optional(),
+              })
+              .optional(),
+          })
+          .optional(),
         cursor: z.string().nullish(),
         limit: z.number().min(1).max(100).default(10),
       })
     )
     .query(async ({ ctx, input }) => {
       const userId = ctx.session?.user.id;
-      const { limit, cursor } = input;
+      const { limit, cursor, where } = input;
       // await ctx.prisma.user.deleteMany();
       // await ctx.prisma.post.deleteMany();
       const posts = await ctx.prisma.post.findMany({
         orderBy: {
           createdAt: "desc",
         },
+        where,
         cursor: cursor ? { id: cursor } : undefined,
         take: limit + 1,
         include: {
