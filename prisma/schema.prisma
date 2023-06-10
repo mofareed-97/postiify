@@ -91,16 +91,15 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
-
-  createdAt DateTime @default(now())
-
-  birthDate DateTime?
-  bio       String?
-  country   String?
-  website   String?
-  Post      Post[]
-  Comment   Comment[]
-  Like      Like[]
+  password      String?
+  createdAt     DateTime  @default(now())
+  birthDate     DateTime?
+  bio           String?
+  country       String?
+  website       String?
+  Post          Post[]
+  Comment       Comment[]
+  Like          Like[]
 
   followers User[] @relation(name: "Followers")
   follows   User[] @relation(name: "Followers")

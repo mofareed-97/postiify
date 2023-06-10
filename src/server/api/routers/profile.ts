@@ -21,8 +21,16 @@ export const profileRouter = createTRPCRouter({
           name: true,
           image: true,
           website: true,
-          followers: true,
-          follows: true,
+          followers: {
+            select: {
+              id: true,
+            },
+          },
+          follows: {
+            select: {
+              id: true,
+            },
+          },
           Like: true,
           id: true,
           createdAt: true,
@@ -49,5 +57,31 @@ export const profileRouter = createTRPCRouter({
           ...input,
         },
       });
+    }),
+
+  toggleFollow: protectedProcedure
+    .input(z.object({ userId: z.string() }))
+    .mutation(async ({ input: { userId }, ctx }) => {
+      const currentUserId = ctx.session.user.id;
+      const existingFollow = await ctx.prisma.user.findFirst({
+        where: { id: userId, followers: { some: { id: currentUserId } } },
+      });
+
+      let addedFollow;
+      if (existingFollow == null) {
+        await ctx.prisma.user.update({
+          where: { id: userId },
+          data: { followers: { connect: { id: currentUserId } } },
+        });
+        addedFollow = true;
+      } else {
+        await ctx.prisma.user.update({
+          where: { id: userId },
+          data: { followers: { disconnect: { id: currentUserId } } },
+        });
+        addedFollow = false;
+      }
+
+      return { addedFollow };
     }),
 });

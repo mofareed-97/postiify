@@ -3,6 +3,7 @@ import { GetServerSideProps } from "next";
 import { getSession } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import React from "react";
+import { Toaster } from "react-hot-toast";
 import { Login } from "~/components/Auth/Login";
 import LoadingSpinner from "~/components/LoadingSpinner";
 import About from "~/components/Profile/About";
@@ -26,6 +27,7 @@ function Profile({ userId }: { userId: string }) {
         <LoadingSpinner big />
       </div>
     );
+
   return (
     <main className="container min-h-screen w-full py-4">
       <Banner profile={data} />
@@ -34,6 +36,7 @@ function Profile({ userId }: { userId: string }) {
         <About profile={data} />
         <ProfileFeed userId={userId} />
       </div>
+      <Toaster />
     </main>
   );
 }

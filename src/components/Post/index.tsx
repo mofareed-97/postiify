@@ -207,6 +207,10 @@ const AppPost = ({ post, client, input }: PostProps) => {
         <Button
           disabled={likeMutation.isLoading || unlikeMutation.isLoading}
           onClick={() => {
+            if (!sessionData?.user) {
+              toast.error("Your are not authenticated");
+              return;
+            }
             if (hasLiked) {
               void unlikeMutation.mutateAsync({ postId: post.id });
               return;
